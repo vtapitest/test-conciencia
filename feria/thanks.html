@@ -1,0 +1,21 @@
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Álbum interno</title></head>
+<body style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:640px;margin:8vh auto;padding:0 16px">
+<h1>¡Gracias!</h1>
+<p>Este acceso formaba parte de un <strong>ejercicio de concienciación</strong>.</p>
+<p>Señales a detectar en este caso (“fotos de la feria”):</p>
+<ul id="tips">
+  <li>QR que no muestra el dominio real del álbum.</li>
+  <li>Acceso a fotos internas sin pasar por la intranet o canal habitual.</li>
+  <li>Solicitud de datos en una página no verificada.</li>
+</ul>
+<script>
+  const pw = new URLSearchParams(location.search).get("pw");
+  if(pw === "1"){
+    const li = document.createElement("li");
+    li.textContent = "Escribiste una contraseña en una página no oficial. En un ataque real, ya se habría filtrado.";
+    document.getElementById("tips").appendChild(li);
+  }
+</script>
+</body></html>
