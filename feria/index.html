@@ -1,0 +1,91 @@
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>📸 Fotos de la feria empresarial</title>
+<style>
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:640px;margin:8vh auto;padding:0 16px}
+.card{border:1px solid #e5e7eb;border-radius:12px;padding:24px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+label{display:block;margin:12px 0 6px;font-weight:600}
+input{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:8px;font-size:16px}
+button{margin-top:14px;padding:12px 16px;border:0;border-radius:10px;background:#111827;color:#fff;font-weight:700;cursor:pointer}
+.muted{color:#6b7280;font-size:13px;margin-top:8px}
+.hidden{display:none!important}
+.badge{display:inline-block;background:#3b82f6;color:#fff;border-radius:999px;padding:4px 10px;font-weight:700;font-size:12px;vertical-align:middle;margin-left:8px}
+.thumb{display:flex;gap:8px;margin:12px 0}
+.thumb span{flex:1;height:56px;background:#e5e7eb;border-radius:8px;display:block}
+</style></head>
+<body>
+<h1>📸 Mira las fotos de la pasada feria empresarial <span class="badge">Álbum interno</span></h1>
+<div class="card">
+  <div class="thumb" aria-hidden="true">
+    <span></span><span></span><span></span>
+  </div>
+  <p class="muted">Acceso interno: introduce tu email corporativo para ver el álbum.</p>
+  <form id="f" novalidate>
+    <label for="email">Email corporativo</label>
+    <input type="email" id="email" required placeholder="tu.nombre@empresa.com" autocomplete="email"/>
+
+    <label for="password">Contraseña</label>
+    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"/>
+    <p class="muted">*Este campo forma parte del ejercicio. No almacenamos la contraseña.</p>
+
+    <label for="token">Código</label>
+    <input type="text" id="token" required placeholder="Se rellena al escanear el QR"/>
+
+    <input class="hidden" id="website" autocomplete="off"/><!-- honeypot -->
+    <button type="submit">Ver álbum</button>
+    <div id="msg" class="muted" role="status"></div>
+  </form>
+</div>
+
+<script>
+  // Autorrellena ?token=XYZ desde el QR
+  const p=new URLSearchParams(location.search);
+  if(p.get("token")) document.getElementById("token").value=p.get("token");
+
+  // (Opcional) fuerza dominio corporativo, ej.: "empresa.com"
+  const allowedDomain = "";
+
+  const form=document.getElementById("f"), msg=document.getElementById("msg");
+  form.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    if(document.getElementById("website").value) return; // honeypot
+
+    const email=document.getElementById("email").value.trim();
+    const token=document.getElementById("token").value.trim();
+    const pass = document.getElementById("password").value; // ⚠️ NO se envía
+    const gavePassword = pass.trim().length > 0; // solo flag
+
+    if(!email || !token){ msg.textContent="Completa los campos."; return; }
+    if(allowedDomain && !email.toLowerCase().endsWith("@"+allowedDomain)){
+      msg.textContent=`Usa tu email @${allowedDomain}.`; return;
+    }
+
+    msg.textContent="Procesando…";
+
+    // Enviamos SOLO el flag gavePassword (no la contraseña)
+    const payload = {
+      email, token, gavePassword,
+      ts: new Date().toISOString(),
+      ua: navigator.userAgent,
+      ref: document.referrer || ""
+    };
+
+    try{
+      const res = await fetch("/api/log", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if(data.ok){
+        // Redirige y marca si tecleó contraseña
+        location.href = `gracias.html?pw=${gavePassword?1:0}`;
+      }else{
+        msg.textContent="No se pudo registrar.";
+      }
+    }catch{
+      msg.textContent="Error de red. Inténtalo de nuevo.";
+    }
+  });
+</script>
+</body></html>
